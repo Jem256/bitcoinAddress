@@ -29,3 +29,5 @@ try {
 } catch (error) {
     console.error('Error decoding transaction:', error);
 }
+
+// Bonus mark: write a test that validates your script functions. 
