@@ -1,15 +1,15 @@
 const bitcoin = require('bitcoinjs-lib');
-// const ECPairFactory = require('ecpair').default;
-// const ecc = require('tiny-secp256k1');
-// const ECPair = ECPairFactory(ecc);
-
+const ECPairFactory = require('ecpair').default;
+const ecc = require('tiny-secp256k1');
+const ECPair = ECPairFactory(ecc);
 
 // Step 1: Compute SHA-256 hash of the string "Btrust Builders"
 const preimageString = 'Btrust Builders';
-const sha256HashString = bitcoin.crypto.sha256(Buffer.from(preimageString)).toString('hex');
+const sha256HashString = bitcoin.crypto
+    .sha256(Buffer.from(preimageString))
+    .toString('hex');
 
 console.log('SHA-256 hash of the string:', sha256HashString);
-
 
 // Step 2: Format the redeem script to hexadecimal representation
 const redeemScript = bitcoin.script.compile([
@@ -34,10 +34,10 @@ console.log('Derived P2SH Address:', p2shAddress);
 
 async function createTransaction(privateKeyWIF, previousTxid, p2shAddress) {
     // Derive key pair from the private key
-    const keyPair = bitcoin.initEccLib();
+    const keyPair = ECPair.fromWIF(privateKeyWIF);
 
     // Transaction Builder
-    const txb = new bitcoin.TransactionBuilder(bitcoin.networks.testnet);
+    const txb = new bitcoin.Transaction();
 
     txb.addInput(previousTxid, 0);
     txb.addOutput(p2shAddress, 20000); // Sending 0.0002 BTC
