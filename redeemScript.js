@@ -33,8 +33,8 @@ console.log('Derived P2SH Address:', p2shAddress);
 
 // create transaction
 async function createTransaction(privateKeyWIF, previousTxid, p2shAddress) {
-    // Derive key pair from the private key
-    const keyPair = ECPair.fromWIF(privateKeyWIF);
+
+	const keyPair = ECPair.fromWIF(privateKeyWIF);
 
     // Transaction Builder
     const txb = new bitcoin.Transaction(bitcoin.networks.testnet);

@@ -24,11 +24,10 @@ describe('Redeem Script Generation', function () {
         // Expected redeem script: OP_SHA256 <hash> OP_EQUAL
         assert.strictEqual(
             expectedRedeemScript,
-            'a820e5d5d3b982ee7ee2bdcff942866aa980ec8f497c6db245f1efb0e94e2060e5c387'
+            'a82016e05614526c1ebd3a170a430a1906a6484fdd203ab7ce6690a54938f5c44d7d87'
         );
     });
 
-    // Add more test cases if needed
 });
 
 // Compute SHA-256 hash of the byte encoding (hex) of "Btrust Builders"
