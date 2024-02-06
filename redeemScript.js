@@ -2,6 +2,7 @@ const bitcoin = require('bitcoinjs-lib');
 const ECPairFactory = require('ecpair').default;
 const ecc = require('tiny-secp256k1');
 const ECPair = ECPairFactory(ecc);
+const network = bitcoin.networks.testnet;
 
 // Step 1: Compute SHA-256 hash of the string "Btrust Builders"
 const preimageString = 'Btrust Builders';
@@ -33,18 +34,19 @@ console.log('Derived P2SH Address:', p2shAddress);
 
 // create transaction
 async function createTransaction(privateKeyWIF, previousTxid, p2shAddress) {
-
-	const keyPair = ECPair.fromWIF(privateKeyWIF);
+    const keyPair = ECPair.fromWIF(privateKeyWIF);
 
     // Transaction Builder
-    const txb = new bitcoin.Transaction(bitcoin.networks.testnet);
+    const txb = new bitcoin.Psbt({ network });
+    txb.setVersion(2);
+    txb.setLocktime(0);
 
     txb.addInput(previousTxid, 0);
     txb.addOutput(p2shAddress, 20000); // Sending 0.0002 BTC
     txb.sign(0, keyPair);
 
     // Build and return the transaction hex
-    const tx = txb.build();
+    const tx = txb.extractTransaction();
     return tx.toHex();
 }
 
@@ -68,14 +70,14 @@ async function spendingTransaction(
     p2shAddress
 ) {
     // Transaction Builder
-    const txb = new bitcoin.Transaction(bitcoin.networks.testnet);
+    const txb = new bitcoin.Psbt({ network });
 
     txb.addInput(previousTxid2, 0, null, Buffer.from(lockingScript, 'hex'));
     txb.addOutput(p2shAddress, 40000); // Sending 0.0004 BTC
     txb.sign(0, null, Buffer.from(unlockingScript, 'hex'));
 
     // Build and return the transaction hex
-    const tx = txb.build();
+    const tx = txb.extractTransaction();
     return tx.toHex();
 }
 
