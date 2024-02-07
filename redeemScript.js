@@ -34,16 +34,24 @@ console.log('Derived P2SH Address:', p2shAddress);
 
 // create transaction
 async function createTransaction(privateKeyWIF, previousTxid, p2shAddress) {
-    const keyPair = ECPair.fromWIF(privateKeyWIF);
+    const keyPair = ECPair.fromWIF(privateKeyWIF, network);
 
     // Transaction Builder
     const txb = new bitcoin.Psbt({ network });
     txb.setVersion(2);
     txb.setLocktime(0);
 
-    txb.addInput(previousTxid, 0);
-    txb.addOutput(p2shAddress, 20000); // Sending 0.0002 BTC
-    txb.sign(0, keyPair);
+    txb.addInput({
+        hash: Buffer.from(previousTxid),
+        index: 0,
+    });
+    txb.addOutput({
+        script: Buffer.from(p2shAddress, 'hex'),
+        value: 20000,
+    }); // Sending 0.0002 BTC
+    txb.signInput(0, keyPair);
+    txb.validateSignaturesOfInput(0);
+    txb.finalizeAllInputs();
 
     // Build and return the transaction hex
     const tx = txb.extractTransaction();
@@ -63,39 +71,39 @@ createTransaction(privateKeyWIF, previousTxid, p2shAddress)
     });
 
 // spending transaction
-async function spendingTransaction(
-    previousTxid2,
-    lockingScript,
-    unlockingScript,
-    p2shAddress
-) {
-    // Transaction Builder
-    const txb = new bitcoin.Psbt({ network });
+// async function spendingTransaction(
+//     previousTxid2,
+//     lockingScript,
+//     unlockingScript,
+//     p2shAddress
+// ) {
+//     // Transaction Builder
+//     const txb = new bitcoin.Psbt({ network });
 
-    txb.addInput(previousTxid2, 0, null, Buffer.from(lockingScript, 'hex'));
-    txb.addOutput(p2shAddress, 40000); // Sending 0.0004 BTC
-    txb.sign(0, null, Buffer.from(unlockingScript, 'hex'));
+//     txb.addInput(previousTxid2, 0, null, Buffer.from(lockingScript, 'hex'));
+//     txb.addOutput(p2shAddress, 40000); // Sending 0.0004 BTC
+//     txb.sign(0, null, Buffer.from(unlockingScript, 'hex'));
 
-    // Build and return the transaction hex
-    const tx = txb.extractTransaction();
-    return tx.toHex();
-}
+//     // Build and return the transaction hex
+//     const tx = txb.extractTransaction();
+//     return tx.toHex();
+// }
 
-const previousTxid2 = 'my_previous_txid';
-const lockingScript = redeemScript;
-// Unlocking Script (ScriptSig): use preimage of redeem script
-const unlockingScript = bitcoin.script.compile([Buffer.from(preimageString)]);
+// const previousTxid2 = 'my_previous_txid';
+// const lockingScript = redeemScript;
+// // Unlocking Script (ScriptSig): use preimage of redeem script
+// const unlockingScript = bitcoin.script.compile([Buffer.from(preimageString)]);
 
-console.log(
-    'Unlocking Script (ScriptSig):',
-    bitcoin.script.toASM(unlockingScript)
-);
+// console.log(
+//     'Unlocking Script (ScriptSig):',
+//     bitcoin.script.toASM(unlockingScript)
+// );
 
-spendingTransaction(previousTxid2, lockingScript, unlockingScript, p2shAddress)
-    .then((transactionHex) => {
-        console.log('Spending Transaction Hex:', transactionHex);
-    })
-    .catch((error) => {
-        console.error('Error:', error.message);
-    });
+// spendingTransaction(previousTxid2, lockingScript, unlockingScript, p2shAddress)
+//     .then((transactionHex) => {
+//         console.log('Spending Transaction Hex:', transactionHex);
+//     })
+//     .catch((error) => {
+//         console.error('Error:', error.message);
+//     });
 
