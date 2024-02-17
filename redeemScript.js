@@ -33,7 +33,12 @@ const p2shAddress = bitcoin.payments.p2sh({
 console.log('Derived P2SH Address:', p2shAddress);
 
 // create transaction
-async function createTransaction(privateKeyWIF, previousTxid, p2shAddress) {
+async function createTransaction(
+    privateKeyWIF,
+    previousTxid,
+    p2shAddress,
+    previousHex
+) {
     const keyPair = ECPair.fromWIF(privateKeyWIF, network);
 
     // Transaction Builder
@@ -73,36 +78,44 @@ createTransaction(privateKeyWIF, previousTxid, previousHex, p2shAddress)
         console.error('Error:', error.message);
     });
 
+
 // spending transaction
 async function spendingTransaction(
     previousTxid2,
     lockingScript,
     unlockingScript,
-    p2shAddress
+    sendAddress
 ) {
     // Transaction Builder
     const txb = new bitcoin.Psbt({ network });
 
-    txb.addInput(previousTxid2, 0, null, Buffer.from(lockingScript, 'hex'));
-    txb.addOutput(p2shAddress, 40000); // Sending 0.0004 BTC
-    txb.sign(0, null, Buffer.from(unlockingScript, 'hex'));
+    txb.addInput({
+        hash: previousTxid2,
+        index: 0,
+        nonWitnessUtxo: Buffer.from(lockingScript, 'hex'),
+    });
+    txb.addOutput(sendAddress, 10000); // Sending 0.0001 BTC
+    // txb.sign(0, null, Buffer.from(unlockingScript, 'hex'));
+    txb.signInput(0, keyPair);
 
     // Build and return the transaction hex
     const tx = txb.extractTransaction();
     return tx.toHex();
 }
 
-const previousTxid2 = 'my_previous_txid';
-const lockingScript = redeemScript;
+const previousTxid2 =
+    'a21c9f2d163999061e9f399dd659ef53f49d147fcaa2b354be4202732e235e16';
+const lockingScript = redeemScript.toString('hex');
 // Unlocking Script (ScriptSig): use preimage of redeem script
 const unlockingScript = bitcoin.script.compile([Buffer.from(preimageString)]);
+const sendAddress = 'msRfTjXaAkWEBX42VtVT3MCMqBpHZLBAfW';
 
 console.log(
     'Unlocking Script (ScriptSig):',
     bitcoin.script.toASM(unlockingScript)
 );
 
-spendingTransaction(previousTxid2, lockingScript, unlockingScript, p2shAddress)
+spendingTransaction(previousTxid2, lockingScript, unlockingScript, sendAddress)
     .then((transactionHex) => {
         console.log('Spending Transaction Hex:', transactionHex);
     })
