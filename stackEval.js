@@ -43,4 +43,4 @@ function bitcoinScriptEvaluation(hexScript) {
 }
 
 const result = bitcoinScriptEvaluation(hexScript);
-console.log(result); // Should output: true
+console.log(result); 
